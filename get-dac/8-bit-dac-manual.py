@@ -23,7 +23,9 @@ try:
         try:
             voltage = float(input("Введите напряжение в вольтах: "))
             number = voltage_to_number(voltage)
-            GPIO.output(leds, number_to_dac(number))
+            bit_list = number_to_dac(number)
+            print(f"{voltage} Вольт,{number} после перевода , {bit_list} лист")
+            GPIO.output(leds, bit_list)
 
         except ValueError:
             print("Вы ввели не число. Попробуйте ещё раз \n")
