@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO 
 
 leds = [16,20,21,25,26,17,27,22]
-gpio_bits = leds[::-1]
+gpio_bits = leds
 
 class R2R_DAC:
     def __init__(self, gpio_bits, dynamic_range, verbose = False):
