@@ -24,7 +24,7 @@ class MCP4725:
             print("Число выходит за разрядность MCP4725 (12 бит)")
             return
 
-        first_byte = (self.wm << 4) | (self.pds << 1) | (number >> 8)
+        first_byte = self.wm  | self.pds  | (number >> 8)
         second_byte = number & 0xFF
 
         self.bus.write_byte_data(self.address, first_byte, second_byte)
@@ -44,12 +44,14 @@ class MCP4725:
 
 if __name__ == "__main__":
     dac = MCP4725(dynamic_range=5.0)
-    while True:
-        try:
+    try:
+        while True:
             target_v = float(input("Введите желаемое напряжение:\n"))
             print(f"Установка напряжения: {target_v} В")
             dac.set_voltage(target_v)
-        except KeyboardInterrupt:
+    except ValueError:
+        print("\nВведите число")
+    except KeyboardInterrupt:
             print("\nЗавершение работы...")
-        finally:
+    finally:
             dac.deinit()
