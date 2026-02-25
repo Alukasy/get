@@ -34,7 +34,7 @@ class MCP4725:
                   f"[0x{(self.address << 1):02X}, 0x{first_byte:02X}, 0x{second_byte:02X}]\n")
 
     def set_voltage(self, voltage):
-        if voltage >= 5:
+        if voltage > self.dynamic_range:
             voltage = 0
         number = int((voltage / self.dynamic_range) * 4095)
         
@@ -43,7 +43,7 @@ class MCP4725:
         self.set_number(number)
 
 if __name__ == "__main__":
-    dac = MCP4725(dynamic_range=5.0)
+    dac = MCP4725(dynamic_range=5.16)
     try:
         while True:
             target_v = float(input("Введите желаемое напряжение:\n"))
