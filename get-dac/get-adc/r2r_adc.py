@@ -25,7 +25,7 @@ class R2R_ADC:
         for value in range(256):
             self.number_to_dac(value)
             time.sleep(self.compare_time) 
-            if GPIO.input(self.comp_gpio) == 0:
+            if GPIO.input(self.comp_gpio) == 1:
                 return value 
         return 255
     
@@ -35,12 +35,12 @@ class R2R_ADC:
 
 if __name__ == "__main__":
     try:
-        adc = R2R_ADC(dynamic_range=3.3)
+        adc = R2R_ADC(dynamic_range=3.28)
         while True:
             u = adc.get_sc_voltage()
             print(f"Voltage: {u:.4f} V")
     except KeyboardInterrupt:
         pass
     finally:
-        if 'adc' in locals():
+        if adc:
             del adc
