@@ -1,41 +1,39 @@
-import RPi.GPIO as GPIO
 import time
+from r2r_adc import R2R_ADC
+from adc_plot import plot_voltage_vs_time
 
-class R2R_ADC:
-    def __init__(self, dynamic_range, compare_time=0.0001, verbose=False):
-        self.dynamic_range = dynamic_range
-        self.verbose = verbose 
-        self.compare_time = compare_time
-        self.bits_gpio = [26, 20, 19, 16, 13, 12, 25, 11]
-        self.comp_gpio = 21 
-
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.bits_gpio, GPIO.OUT, initial=0)
-        GPIO.setup(self.comp_gpio, GPIO.IN)
-
-    def __del__(self):
-        GPIO.output(self.bits_gpio, 0)
-        GPIO.cleanup()
-
-    def number_to_dac(self, number):
-        signal = [int(bit) for bit in bin(int(number))[2:].zfill(8)]
-        GPIO.output(self.bits_gpio, signal)
+def main():
+    # Параметры эксперимента
+    MY_DYNAMIC_RANGE = 3.3
+    duration = 3.0
+    voltage_values = []
+    time_values = []
     
-    def sequential_counting_adc(self):
-        for value in range(256):
-            self.number_to_dac(value)
-            time.sleep(self.compare_time) 
-            if GPIO.input(self.comp_gpio) == 1:
-                return value 
-        return 255
-    
-    def get_sc_voltage(self):
-        code = self.sequential_counting_adc()
-        return (code / 256) * self.dynamic_range
-    
-voltage_values = []
-time_values = []
-duration = 3.0
+    adc = None
+    try:
+        # Инициализация с быстрым временем сравнения
+        adc = R2R_ADC(dynamic_range=MY_DYNAMIC_RANGE, compare_time=0.0001)
+        
+        start_time = time.time()
+        print(f"Запись данных в течение {duration} сек...")
 
-try:
-    
+        while (time.time() - start_time) < duration:
+            current_elapsed = time.time() - start_time
+            
+            # Измеряем напряжение и фиксируем время
+            v = adc.get_sc_voltage()
+            
+            voltage_values.append(v)
+            time_values.append(current_elapsed)
+
+        print("Запись завершена. Построение графика...")
+        plot_voltage_vs_time(time_values, voltage_values, MY_DYNAMIC_RANGE)
+
+    except KeyboardInterrupt:
+        print("\nПрервано пользователем")
+    finally:
+        if adc:
+            del adc
+
+if __name__ == "__main__":
+    main()
