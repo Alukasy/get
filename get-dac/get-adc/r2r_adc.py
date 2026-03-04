@@ -19,15 +19,13 @@ class R2R_ADC:
 
     def number_to_dac(self, number):
         signal = [int(bit) for bit in bin(int(number))[2:].zfill(8)]
-        GPIO.output(self.bits_gpio,signal) 
+        GPIO.output(self.bits_gpio, signal)
     
     def sequential_counting_adc(self):
         for value in range(256):
             self.number_to_dac(value)
-            time.sleep(self.compare_time)
-            comparatorValue = GPIO.input(self.comp_gpio)
-            if comparatorValue == 0:
-                print(f"Binary : {value}")
+            time.sleep(self.compare_time) 
+            if GPIO.input(self.comp_gpio) == 0:
                 return value 
         return 255
     
@@ -44,5 +42,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
     finally:
-        if adc:
-            adc.deinit()
+        if 'adc' in locals():
+            del adc
