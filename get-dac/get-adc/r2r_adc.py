@@ -1,24 +1,23 @@
 import RPi.GPIO as GPIO
-import time 
+import time
+
 class R2R_ADC:
-    def __init__(self, dynamic_range, compare_time = 0.01, verbose = False):
+    def __init__(self, dynamic_range, compare_time=0.01, verbose=False):
         self.dynamic_range = dynamic_range
         self.verbose = verbose 
         self.compare_time = compare_time
-
-        self.bits_gpio = [26,20,19,16,13,12,25,11]
+        self.bits_gpio = [26, 20, 19, 16, 13, 12, 25, 11]
         self.comp_gpio = 21 
 
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.bits_gpio, GPIO.OUT, initial = 0)
+        GPIO.setup(self.bits_gpio, GPIO.OUT, initial=0)
         GPIO.setup(self.comp_gpio, GPIO.IN)
 
-    def deinit(self):
+    def __del__(self):
         GPIO.output(self.bits_gpio, 0)
         GPIO.cleanup()
 
-    
-    def number_to_dac(self,number):
+    def number_to_dac(self, number):
         signal = [int(bit) for bit in bin(int(number))[2:].zfill(8)]
         GPIO.output(self.bits_gpio,signal) 
     
@@ -30,28 +29,20 @@ class R2R_ADC:
             if comparatorValue == 0:
                 print(f"Binary : {value}")
                 return value 
-        return 256 
+        return 255
     
     def get_sc_voltage(self):
         code = self.sequential_counting_adc()
-        voltage = code/256 * self.dynamic_range
-        return voltage 
-
+        return (code / 256) * self.dynamic_range
 
 if __name__ == "__main__":
-    My_dinamic_range = 3.3 
-    adc = None 
     try:
-        
-        adc = R2R_ADC(dynamic_range = My_dinamic_range, verbose = False)
-        print("Start ADC measurements")
-
+        adc = R2R_ADC(dynamic_range=3.3)
         while True:
             u = adc.get_sc_voltage()
-            print(f"Measured Voltage: {u:.4f} V")
-
+            print(f"Voltage: {u:.4f} V")
     except KeyboardInterrupt:
-        print("Stopped")
+        pass
     finally:
         if adc:
             adc.deinit()
