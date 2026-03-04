@@ -8,7 +8,7 @@ sampling_frequency = 1000
 
 
 
-dynamic_range = 3.3
+dynamic_range = 3.2
 pin = 12
 
 try: 
