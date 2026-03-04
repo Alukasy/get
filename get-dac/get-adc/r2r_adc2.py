@@ -24,16 +24,12 @@ class R2R_ADC:
     
     def successive_approximation_adc(self):
         value = 0
-        # Итерируемся от старшего бита (7) к младшему (0)
         for i in range(7, -1, -1):
-            # Временно устанавливаем текущий бит в 1
             test_value = value | (1 << i)
             self.number_to_dac(test_value)
             time.sleep(self.compare_time)
             
-            # Читаем компаратор
-            # Если 1, значит напряжение ЦАП все еще меньше входного — оставляем бит
-            if GPIO.input(self.comp_gpio) == 1:
+            if GPIO.input(self.comp_gpio) == 0:
                 value = test_value
         
         return value
@@ -56,5 +52,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nStopped")
     finally:
-        if 'adc' in locals():
+        if adc:
             del adc
