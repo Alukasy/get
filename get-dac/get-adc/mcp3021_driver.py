@@ -31,7 +31,7 @@ class MCP3021:
 
 if __name__ == "__main__":
     V_ref = 5.2 
-    adc = MCP3021(dynamic_range = V_ref, verbose = False) 
+    adc = MCP3021(dynamic_range = V_ref, verbose = True) 
 
     try:
         while True:
