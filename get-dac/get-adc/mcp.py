@@ -1,40 +1,68 @@
+import time
+import matplotlib.pyplot as plt
 from mcp3021_driver import MCP3021
-import matplotlib.pyplot as plt 
-import time 
 
-def plot_voltage_vs_time(time, voltage, max_voltage):
-    plt.figure(figsize = (10,6))
-    plt.plot(time, voltage, label = "U(t)")
-    plt.xlabel("Время")
-    plt.ylabel("Напряжение")
-    plt.xlim(0, max(time) if time else 1)
-    plt.ylim(0, max_voltage+0.5)
-    plt.grid(True)
-    plt.show()
+def task_plot():
+    DYNAMIC_RANGE = 3.3  # Измерь на AUX (3.3 или 5.0)
+    DURATION = 10        # Длительность записи
+    
+    adc = MCP3021(dynamic_range=DYNAMIC_RANGE)
+    
+    voltages = []
+    times = []
+    durations = [] 
+    
+    print(f"Запуск измерений на {DURATION} секунд...")
+    
+    try:
+        start_time = time.time()
+        prev_time = start_time
+        
+        while (time.time() - start_time) < DURATION:
+            curr_time = time.time()
+            
+            # Читаем АЦП без пауз между итерациями
+            v = adc.get_voltage()
+            
+            # Фиксируем данные
+            voltages.append(v)
+            times.append(curr_time - start_time)
+            
+            # Считаем чистый период измерения
+            step_duration = curr_time - prev_time
+            durations.append(step_duration)
+            
+            prev_time = curr_time
+            
+            # time.sleep(0.02) <-- УБРАНО, чтобы получить пик в начале оси
+            
+        print("Сбор данных завершен. Отрисовка...")
+        
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
+        plt.subplots_adjust(hspace=0.3)
 
-def plot_sampling_period_hist(time):
-    sampling_periods = [time[i] - time[i-1] for i in range(1, len(time))]
-    plt.figure(figsize = (10,6))
-    plt.hist(sampling_periods)
-    plt.xlim(0,0.06)
-    plt.grid(True)
-    plt.show()
+        # 1. Напряжение
+        ax1.plot(times, voltages, color='tab:blue', linewidth=0.5)
+        ax1.set_title("Зависимость напряжения от времени")
+        ax1.set_xlabel("Время, с")
+        ax1.set_ylabel("Напряжение, В")
+        ax1.grid(True)
+        ax1.set_ylim(0, DYNAMIC_RANGE + 0.2)
 
-mcp = MCP3021()
-voltage_values = []
-time_values = []
-time_periods = []
-duration = 3
-print("Пошла возня")
+        # 2. Гистограмма (как на твоем скриншоте)
+        ax2.hist(durations, bins=100, color='tab:blue', range=(0, 0.06))
+        ax2.set_title("Распределение периодов дискретизации измерений\nпо времени на одно измерение")
+        ax2.set_xlabel("Период измерения, с")
+        ax2.set_ylabel("Количество измерений")
+        ax2.grid(True)
+        ax2.set_xlim(0, 0.06) # Фиксируем ось X как на картинке
 
-try:
-    start = time.time()
-    while time.time() - start < duration:
-        last_time = time.time()
-        time_values.append(time.time())
-        voltage_values.append(mcp.get_voltage())
-        time_periods.append(abs(last_time - time.time()))
-    plot_voltage_vs_time(time_values, voltage_values, 3.3)
-    plot_sampling_period_hist(time_periods)
-finally:
-    mcp.deinit()
+        plt.show()
+
+    except KeyboardInterrupt:
+        print("\nПрервано.")
+    finally:
+        adc.deinit()
+
+if __name__ == "__main__":
+    task_plot()
