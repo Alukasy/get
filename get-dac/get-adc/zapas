@@ -1,0 +1,57 @@
+def plot_task():
+    dynamic_range = 5.2 
+    duration = 5 
+    z = 0
+
+    adc = MCP3021(dynamic_range=dynamic_range)
+
+    voltages = []
+    times = []
+
+    print(f"Начало измерения длительностью {duration} секунд")
+
+    try: 
+        start_time = time.time()
+        durations = []
+        prev_time = time.time()
+        while (time.time() - start_time) < duration:
+            curr_time = time.time()
+            v = adc.get_voltage()
+            voltages.append(v)
+            times.append(curr_time - start_time)
+            step_duration = curr_time - prev_time 
+            durations.append(step_duration - 0.02)
+            prev_time = curr_time 
+
+
+        
+            z += 1
+            time.sleep(0.02)
+            if z % 50 == 0:
+                print(f"Осталось {5 - z*0.02}")
+        print("Измерения окончены")
+        fig, (ax1,ax2) = plt.subplots(2,1,figsize = (10,8))
+        plt.subplots_adjust(hspace = 0.4)
+
+        ax1.plot(times,voltages)
+        ax1.set_title("Voltage vs time")
+        ax1.set_ylabel("Voltage,V")
+        ax1.grid(True)
+
+        ax2.hist(durations, bins=20)
+        ax2.set_title("Гистограмма")
+        ax2.set_xlabel('Длительность шагов')
+        ax2.set_ylabel("Count")
+        ax2.set_xlim(0,0.06)
+        ax2.grid(True)
+
+        plt.show()
+
+
+    except KeyboardInterrupt:
+        print("Прервано")
+    finally:
+        adc.deinit()
+
+if __name__ == "__main__":
+    plot_task()
